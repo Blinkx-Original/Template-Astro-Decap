@@ -1,16 +1,11 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-const CLIENT_ID = process.env.GITHUB_CLIENT_ID as string;
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+export default async function handler(req: any, res: any) {
+  // Allow CORS preflight if the browser sends OPTIONS
   if (req.method === 'OPTIONS') return res.status(204).end();
 
+  const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
   if (!CLIENT_ID) {
-    res.status(500).json({ error: 'Missing GITHUB_CLIENT_ID' });
-    return;
+    console.error('Missing GITHUB_CLIENT_ID');
+    return res.status(500).json({ error: 'Missing GITHUB_CLIENT_ID' });
   }
 
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
@@ -22,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   authorize.searchParams.set('scope', 'repo,user');
   authorize.searchParams.set('redirect_uri', callbackUrl);
 
-  res.status(302).setHeader('Location', authorize.toString());
+  res.statusCode = 302;
+  res.setHeader('Location', authorize.toString());
   res.end();
 }
